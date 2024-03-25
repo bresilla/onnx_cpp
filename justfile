@@ -1,0 +1,2 @@
+build:
+	xmake && xmake run

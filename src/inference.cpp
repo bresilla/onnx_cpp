@@ -37,6 +37,25 @@ namespace utils {
 		cv::addWeighted(im, 0.4, image, 0.6, 0, im);
 	}
 
+    void draw_result(cv::Mat &img, std::vector<Detection>& detection, std::vector<cv::Scalar> color){
+        cv::Mat mask = img.clone();
+        for (int i = 0; i < detection.size(); i++){
+            int left = detection[i].bbox.x;
+            int top = detection[i].bbox.y;
+            
+            cv::rectangle(img, detection[i].bbox, color[detection[i].id], 2 );
+            std::string classString = std::to_string(detection[i].id) + ' ' + std::to_string(detection[i].accu).substr(0, 4);
+            cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
+            cv::Rect textBox(left, top - 40, textSize.width + 10, textSize.height + 20);
+            cv::rectangle(img, textBox, color[detection[i].id], cv::FILLED);
+            cv::putText(img, classString, cv::Point(left + 5, top - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
+            if (detection[i].mask.size() == cv::Size(0, 0)){ continue; }
+            if (detection[i].mask.rows && detection[i].mask.cols > 0){ mask.setTo(color[detection[i].id], detection[i].mask); }
+            cv::drawContours(img, std::vector<std::vector<cv::Point>>{detection[i].contour}, -1, color[detection[i].id], 2);
+        }
+        cv::addWeighted(img, 0.6, mask, 0.4, 0, img);
+    }
+
 	void letterbox(const cv::Mat &image, cv::Mat &outImage, const cv::Size &newShape = cv::Size(640, 640), 
 						const cv::Scalar &color = cv::Scalar(114, 114, 114), bool auto_ = true, bool scaleFill = false, bool scaleUp = true, int stride = 32) {
 		cv::Size shape = image.size();
@@ -282,4 +301,160 @@ std::vector<Detection> ONNXInf::predict(cv::Mat &image) {
     std::vector<Detection> result = this->postprocessing(resizedShape, image.size(), outputTensors);
     delete[] blob;
     return result;
+}
+
+OPENCVInf::OPENCVInf( const std::string &onnxModelPath,  const cv::Size &modelInputShape,  const bool &runWithCuda, const float &accuThresh, const float &maskThresh, const int &segCh, const cv::Size &segSize){
+    model_path = onnxModelPath;
+    model_shape = modelInputShape;
+    cuda_enabled = runWithCuda;
+    seg_size = segSize;
+    
+    load_network();
+}
+
+
+void OPENCVInf::load_network(){
+    net = cv::dnn::readNetFromONNX(model_path);
+    if (cuda_enabled){
+        std::cout << "\nRunning on CUDA" << std::endl;
+        net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
+        net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
+    } else {
+        std::cout << "\nRunning on CPU" << std::endl;
+        net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
+        net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+    }
+}
+
+
+std::vector<Detection> OPENCVInf::detect(cv::Mat& srcImg){
+	only_bbox = true;
+	std::vector<Detection> result = run_detection(srcImg);
+	return result;
+
+}
+
+
+std::vector<Detection> OPENCVInf::segment(cv::Mat& srcImg){
+	only_bbox = false;
+	std::vector<Detection> result = run_detection(srcImg);
+	return result;
+}
+
+
+std::vector<Detection> OPENCVInf::run_detection(cv::Mat& srcImg){
+	std::vector<Detection> result;
+	cv::dnn::Net net = cv::dnn::readNet(model_path.c_str()); //default DNN_TARGET_CPU
+	origin_size = srcImg.size();
+    scaled_size = { 640.0 / srcImg.cols, 640.0 / srcImg.rows };
+	cv::Mat image;
+	resize(srcImg, image, cv::Size(640, 640));
+	cv::Mat blob = cv::dnn::blobFromImage(image, 1 / 255.0, cv::Size(640, 640), cv::Scalar(0, 0, 0), true, false);
+	net.setInput(blob);
+	std::vector<cv::Mat> outputs;
+	net.forward(outputs, net.getUnconnectedOutLayersNames());
+	result = decode_output(outputs[0], outputs[1]);
+	return result;
+}
+
+
+std::vector<Detection> OPENCVInf::decode_output(cv::Mat& output0, cv::Mat& output1) {
+	std::vector<Detection> results;
+	cv::Mat out1 = cv::Mat(cv::Size(output0.size[2], output0.size[1]), CV_32F, (float*)output0.data).t();
+	std::vector<int> class_ids;
+	std::vector<float> accus;
+	std::vector<cv::Rect> boxes;
+	std::vector<std::vector<float>> masks;
+	int data_width = class_names.size() + 4 + 32;
+	int rows = out1.rows;
+	float* pdata = (float*)out1.data;
+
+	for (int r = 0; r < rows; ++r){
+		cv::Mat scores(1, class_names.size(), CV_32FC1, pdata + 4);
+		cv::Point class_id;
+		double max_socre;
+		minMaxLoc(scores, 0, &max_socre, 0, &class_id);
+		if (max_socre >= accu_thresh){
+			masks.push_back(std::vector<float>(pdata + 4 + class_names.size(), pdata + data_width));
+			float w = pdata[2] / scaled_size.width;
+			float h = pdata[3] / scaled_size.height;
+			int left = MAX(int((pdata[0] - 0) / scaled_size.width - 0.5 * w + 0.5), 0);
+			int top = MAX(int((pdata[1] - 0) / scaled_size.height - 0.5 * h + 0.5), 0);
+			class_ids.push_back(class_id.x);
+			accus.push_back(max_socre);
+			boxes.push_back(cv::Rect(left, top, int(w + 0.5), int(h + 0.5)));
+		}
+		pdata += data_width;
+	}
+
+	std::vector<int> nms_result;
+	cv::dnn::NMSBoxes(boxes, accus, accu_thresh, mask_thresh, nms_result);
+
+	for (int i = 0; i < nms_result.size(); ++i){
+		int idx = nms_result[i];
+		boxes[idx] = boxes[idx] & cv::Rect(0, 0, origin_size.width, origin_size.height);
+		Detection result = { class_ids[idx], accus[idx], boxes[idx] };
+		if (only_bbox){
+			results.push_back(result);
+			continue;
+		}
+		result.mask  = get_mask_abs(cv::Mat(masks[idx]).t(), output1, boxes[idx]);
+		result.contour = get_contour(result.mask);
+		results.push_back(result);
+	}
+	return results;
+}
+
+
+cv::Mat OPENCVInf::get_mask_rel(const cv::Mat& mask_info, const cv::Mat& mask_data, cv::Rect box) {
+	int r_x = floor((box.x * scaled_size.width + 0) / model_shape.width * seg_size.width);
+	int r_y = floor((box.y * scaled_size.height + 0) / model_shape.height * seg_size.height);
+	int r_w = ceil(((box.x + box.width) * scaled_size.width + 0) / model_shape.width * seg_size.width) - r_x;
+	int r_h = ceil(((box.y + box.height) * scaled_size.height + 0) / model_shape.height * seg_size.height) - r_y;
+	r_w = MAX(r_w, 1);
+	r_h = MAX(r_h, 1);
+	if (r_x + r_w > seg_size.width) { seg_size.width - r_x > 0 ? r_w = seg_size.width - r_x : r_x -= 1; }
+	if (r_y + r_h > seg_size.height) { seg_size.height - r_y > 0 ? r_h = seg_size.height - r_y : r_y -= 1; }
+	std::vector<cv::Range> roi_rangs = {cv::Range(0, 1), cv::Range::all(), cv::Range(r_y, r_h + r_y), cv::Range(r_x, r_w + r_x)};
+	cv::Mat temp_mask = mask_data(roi_rangs).clone();
+	cv::Mat protos = temp_mask.reshape(0, { seg_ch,r_w * r_h });
+	cv::Mat matmul_res = (mask_info * protos).t();
+	cv::Mat masks_feature = matmul_res.reshape(1, { r_h,r_w });
+	cv::Mat dest;
+	cv::exp(-masks_feature, dest); //sigmoid
+	dest = 1.0 / (1.0 + dest);
+	int left = floor((model_shape.width / seg_size.width * r_x - 0) / scaled_size.width);
+	int top = floor((model_shape.height / seg_size.height * r_y - 0) / scaled_size.height);
+	int width = ceil(model_shape.width / seg_size.width * r_w / scaled_size.width);
+	int height = ceil(model_shape.height / seg_size.height * r_h / scaled_size.height);
+	cv::Mat mask;
+	resize(dest, mask, cv::Size(width, height));
+	return mask(box - cv::Point(left, top)) > mask_thresh;
+}
+
+
+cv::Mat OPENCVInf::get_mask_abs(const cv::Mat& mask_info, const cv::Mat& mask_data, cv::Rect box) {
+	cv::Mat rel_mask = get_mask_rel(mask_info, mask_data, box);
+	cv::Mat abs_mask = cv::Mat::zeros(origin_size, CV_8UC1);
+	cv::resize(rel_mask, abs_mask(box), box.size());
+	return abs_mask;
+}
+
+
+std::vector<cv::Point> OPENCVInf::get_contour(const cv::Mat& mask, bool join){
+	cv::Mat mask2 = mask.clone();
+	cv::Mat mask8;
+	mask2.convertTo(mask8, CV_8UC1, 255);
+	std::vector<std::vector<cv::Point>> contours;
+	cv::findContours(mask8, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+	if (join){
+		std::vector<cv::Point> contour;
+		for (int i = 0; i < contours.size(); i++){
+			contour.insert(contour.end(), contours[i].begin(), contours[i].end());
+		}
+		return contour;
+	}
+	else{
+		return contours[0];
+	}
 }
