@@ -16,7 +16,7 @@ add_requires("opencv", {system = true})
 add_requires("onnxruntime", {system = true})
 add_requires("spdlog")
 
-target("run")
+target("detector")
     set_kind("binary")
     add_includedirs("include")
     add_files("src/main.cpp")

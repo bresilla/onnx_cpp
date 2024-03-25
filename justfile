@@ -1,2 +1,2 @@
 build:
-	xmake && xmake run
+	xmake && xmake run detector

@@ -8,7 +8,13 @@ int main(int argc, char *argv[]){
     float maskThreshold = 0.1f;
     bool isGPU = false;
 
-    bool opencv = true;
+    // check if argument is "opencv" or "onnx"
+    bool opencv = false;
+    if (argc > 1){
+        if (std::string(argv[1]) == "opencv"){
+            opencv = true;
+        }
+    }
 
     spdlog::info("Start inference");
 
@@ -21,17 +27,13 @@ int main(int argc, char *argv[]){
  
     std::vector<Detection> result;
     if (opencv){
-        spdlog::info("Using OpenCV inference");
+        spdlog::info("Using OpenCV");
         OPENCVInf inf = OPENCVInf(modelPath, isGPU, confThreshold, maskThreshold);
         result = inf.predict(image);
     } else {
-        spdlog::info("Using ONNX inference");
+        spdlog::info("Using ONNX");
         ONNXInf inf = ONNXInf(modelPath, isGPU, confThreshold, maskThreshold);
         result = inf.predict(image);
-    }
-
-    for (auto &det : result){
-        spdlog::info("Id: {}, Accu: {}, Bbox: ({}, {}, {}, {})", det.id, det.accu, det.bbox.x, det.bbox.y, det.bbox.width, det.bbox.height);
     }
 
     spdlog::info("Inference done");
