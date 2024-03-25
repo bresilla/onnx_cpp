@@ -1,59 +1,44 @@
 #include "inference.hpp"
 
 namespace utils {
-	std::vector<cv::Point> get_contour(const cv::Mat& mask, bool join){
-		cv::Mat mask2 = mask.clone();
-		cv::Mat mask8;
-		mask2.convertTo(mask8, CV_8UC1, 255);
-		std::vector<std::vector<cv::Point>> contours;
-		cv::findContours(mask8, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-		if (join){
-			std::vector<cv::Point> contour;
-			for (int i = 0; i < contours.size(); i++){
-				contour.insert(contour.end(), contours[i].begin(), contours[i].end());
-			}
-			return contour;
-		}
-		else{
-			return contours[0];
-		}
-	}
-
-	void visualizeDetection(cv::Mat &im, std::vector<Detection> &results, const std::vector<std::string> &classNames) {
-		cv::Mat image = im.clone();
-		for (const Detection &result : results) {
-			int x = result.bbox.x;
-			int y = result.bbox.y;
-			int conf = (int)std::round(result.accu * 100);
-			int classId = result.id;
-			std::string label = classNames[classId] + " 0." + std::to_string(conf);
-			int baseline = 0;
-			cv::Size size = cv::getTextSize(label, cv::FONT_ITALIC, 0.4, 1, &baseline);
-			image(result.bbox).setTo(colors[classId + classNames.size()], result.mask);
-			cv::rectangle(image, result.bbox, colors[classId], 2);
-			cv::rectangle(image, cv::Point(x, y), cv::Point(x + size.width, y + 12), colors[classId], -1);
-			cv::putText(image, label, cv::Point(x, y - 3 + 12), cv::FONT_ITALIC, 0.4, cv::Scalar(0, 0, 0), 1);
-		}
-		cv::addWeighted(im, 0.4, image, 0.6, 0, im);
-	}
-
-    void draw_result(cv::Mat &img, std::vector<Detection>& detection, std::vector<cv::Scalar> color){
+    void visualizeDetection(cv::Mat &img, std::vector<Detection> &detection, const std::vector<std::string> &classNames){
         cv::Mat mask = img.clone();
         for (int i = 0; i < detection.size(); i++){
+            auto color = cv::Scalar(0, 255, 0);
             int left = detection[i].bbox.x;
             int top = detection[i].bbox.y;
-            
-            cv::rectangle(img, detection[i].bbox, color[detection[i].id], 2 );
-            std::string classString = std::to_string(detection[i].id) + ' ' + std::to_string(detection[i].accu).substr(0, 4);
+            std::string label = classNames[detection[i].id];
+            cv::rectangle(img, detection[i].bbox, color, 2 );
+            std::string classString = label + ' ' + std::to_string(detection[i].accu).substr(0, 4);
             cv::Size textSize = cv::getTextSize(classString, cv::FONT_HERSHEY_DUPLEX, 1, 2, 0);
             cv::Rect textBox(left, top - 40, textSize.width + 10, textSize.height + 20);
-            cv::rectangle(img, textBox, color[detection[i].id], cv::FILLED);
+            cv::rectangle(img, textBox, color, cv::FILLED);
             cv::putText(img, classString, cv::Point(left + 5, top - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
-            if (detection[i].mask.size() == cv::Size(0, 0)){ continue; }
-            if (detection[i].mask.rows && detection[i].mask.cols > 0){ mask.setTo(color[detection[i].id], detection[i].mask); }
-            cv::drawContours(img, std::vector<std::vector<cv::Point>>{detection[i].contour}, -1, color[detection[i].id], 2);
+            // if (detection[i].mask.size() == cv::Size(0, 0)){ continue; }
+            spdlog::info("Visualizing detection");
+            
+            // if (detection[i].mask.rows && detection[i].mask.cols > 0){ mask.setTo(color, detection[i].mask); }
+            cv::drawContours(img, std::vector<std::vector<cv::Point>>{detection[i].contour}, -1, color, 2);
         }
         cv::addWeighted(img, 0.6, mask, 0.4, 0, img);
+    }
+
+    std::vector<cv::Point> get_contour(const cv::Mat& mask, bool join){
+        cv::Mat mask2 = mask.clone();
+        cv::Mat mask8;
+        mask2.convertTo(mask8, CV_8UC1, 255);
+        std::vector<std::vector<cv::Point>> contours;
+        cv::findContours(mask8, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
+        if (join){
+            std::vector<cv::Point> contour;
+            for (int i = 0; i < contours.size(); i++){
+                contour.insert(contour.end(), contours[i].begin(), contours[i].end());
+            }
+            return contour;
+        }
+        else{
+            return contours[0];
+        }
     }
 
 	void letterbox(const cv::Mat &image, cv::Mat &outImage, const cv::Size &newShape = cv::Size(640, 640), 
@@ -117,7 +102,7 @@ namespace utils {
 
 
 
-ONNXInf::ONNXInf(const std::string &modelPath, const bool &isGPU, float confThreshold, float iouThreshold, float maskThreshold) {
+ONNXInf::ONNXInf(const std::string &modelPath, const bool &isGPU, float confThreshold, float maskThreshold, float iouThreshold) {
     this->confThreshold = confThreshold;
     this->iouThreshold = iouThreshold;
     this->maskThreshold = maskThreshold;
@@ -265,13 +250,12 @@ std::vector<Detection> ONNXInf::postprocessing(const cv::Size &resizedImageShape
     for (int idx : indices) {
         Detection res;
         res.bbox = cv::Rect(boxes[idx]);
-        if (this->hasMask)
+        if (this->hasMask){
             res.mask = this->getMask(cv::Mat(picked_proposals[idx]).t(), mask_protos);
-        else
+            res.contour = utils::get_contour(res.mask);
+        } else {
             res.mask = cv::Mat::zeros((int)this->inputShapes[0][2], (int)this->inputShapes[0][3], CV_8U);
-
-		res.contour = utils::get_contour(res.mask, false);
-
+        }
         utils::scaleCoords(res.bbox, res.mask, this->maskThreshold, resizedImageShape, originalImageShape);
         res.accu = confs[idx];
         res.id = classIds[idx];
@@ -303,46 +287,26 @@ std::vector<Detection> ONNXInf::predict(cv::Mat &image) {
     return result;
 }
 
-OPENCVInf::OPENCVInf( const std::string &onnxModelPath,  const cv::Size &modelInputShape,  const bool &runWithCuda, const float &accuThresh, const float &maskThresh, const int &segCh, const cv::Size &segSize){
+OPENCVInf::OPENCVInf( const std::string &onnxModelPath, const bool &runWithCuda, const float &accuThresh, const float &maskThresh, const cv::Size &modelInputShape){
     model_path = onnxModelPath;
     model_shape = modelInputShape;
     cuda_enabled = runWithCuda;
-    seg_size = segSize;
+    seg_size = cv::Size(160, 160);
     
-    load_network();
-}
-
-
-void OPENCVInf::load_network(){
     net = cv::dnn::readNetFromONNX(model_path);
     if (cuda_enabled){
-        std::cout << "\nRunning on CUDA" << std::endl;
+        // std::cout << "\nRunning on CUDA" << std::endl;
         net.setPreferableBackend(cv::dnn::DNN_BACKEND_CUDA);
         net.setPreferableTarget(cv::dnn::DNN_TARGET_CUDA);
     } else {
-        std::cout << "\nRunning on CPU" << std::endl;
+        // std::cout << "\nRunning on CPU" << std::endl;
         net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
         net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
     }
 }
 
 
-std::vector<Detection> OPENCVInf::detect(cv::Mat& srcImg){
-	only_bbox = true;
-	std::vector<Detection> result = run_detection(srcImg);
-	return result;
-
-}
-
-
-std::vector<Detection> OPENCVInf::segment(cv::Mat& srcImg){
-	only_bbox = false;
-	std::vector<Detection> result = run_detection(srcImg);
-	return result;
-}
-
-
-std::vector<Detection> OPENCVInf::run_detection(cv::Mat& srcImg){
+std::vector<Detection> OPENCVInf::predict(cv::Mat& srcImg, bool only_bbox){
 	std::vector<Detection> result;
 	cv::dnn::Net net = cv::dnn::readNet(model_path.c_str()); //default DNN_TARGET_CPU
 	origin_size = srcImg.size();
@@ -399,7 +363,7 @@ std::vector<Detection> OPENCVInf::decode_output(cv::Mat& output0, cv::Mat& outpu
 			continue;
 		}
 		result.mask  = get_mask_abs(cv::Mat(masks[idx]).t(), output1, boxes[idx]);
-		result.contour = get_contour(result.mask);
+		result.contour = utils::get_contour(result.mask);
 		results.push_back(result);
 	}
 	return results;
@@ -438,23 +402,4 @@ cv::Mat OPENCVInf::get_mask_abs(const cv::Mat& mask_info, const cv::Mat& mask_da
 	cv::Mat abs_mask = cv::Mat::zeros(origin_size, CV_8UC1);
 	cv::resize(rel_mask, abs_mask(box), box.size());
 	return abs_mask;
-}
-
-
-std::vector<cv::Point> OPENCVInf::get_contour(const cv::Mat& mask, bool join){
-	cv::Mat mask2 = mask.clone();
-	cv::Mat mask8;
-	mask2.convertTo(mask8, CV_8UC1, 255);
-	std::vector<std::vector<cv::Point>> contours;
-	cv::findContours(mask8, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
-	if (join){
-		std::vector<cv::Point> contour;
-		for (int i = 0; i < contours.size(); i++){
-			contour.insert(contour.end(), contours[i].begin(), contours[i].end());
-		}
-		return contour;
-	}
-	else{
-		return contours[0];
-	}
 }

@@ -5,7 +5,6 @@
 
 int main(int argc, char *argv[]){
     float confThreshold = 0.1f;
-    float iouThreshold = 0.1f;
     float maskThreshold = 0.1f;
     bool isGPU = false;
 
@@ -18,15 +17,16 @@ int main(int argc, char *argv[]){
     cv::Mat image = cv::imread(imagePath);
 
 
+    std::vector<std::string> classNames = {"calyx"};
  
     std::vector<Detection> result;
     if (opencv){
         spdlog::info("Using OpenCV inference");
-        OPENCVInf inf = OPENCVInf(modelPath, cv::Size(640, 640), isGPU, confThreshold, maskThreshold, 32, cv::Size(160, 160));
-        result = inf.segment(image);
+        OPENCVInf inf = OPENCVInf(modelPath, isGPU, confThreshold, maskThreshold);
+        result = inf.predict(image);
     } else {
         spdlog::info("Using ONNX inference");
-        ONNXInf inf = ONNXInf(modelPath, isGPU, confThreshold, iouThreshold, maskThreshold);
+        ONNXInf inf = ONNXInf(modelPath, isGPU, confThreshold, maskThreshold);
         result = inf.predict(image);
     }
 
@@ -36,7 +36,10 @@ int main(int argc, char *argv[]){
 
     spdlog::info("Inference done");
 
-    // utils::visualizeDetection(image, result, classNames);
+    utils::visualizeDetection(image, result, classNames);
+
+    cv::imshow("Result", image);
+    cv::waitKey(0);
 
 
     return 0;

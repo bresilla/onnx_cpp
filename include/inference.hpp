@@ -15,16 +15,15 @@ struct Detection {
 namespace utils{
     static std::vector<cv::Scalar> colors;
     void visualizeDetection(cv::Mat &image, std::vector<Detection> &results, const std::vector<std::string> &classNames);
-    void draw_result(cv::Mat &img, std::vector<Detection>& detection, std::vector<cv::Scalar> color);
     void letterbox(const cv::Mat &image, cv::Mat &outImage, const cv::Size &newShape, const cv::Scalar &color, bool auto_, bool scaleFill, bool scaleUp, int stride);
     void scaleCoords(cv::Rect &coords, cv::Mat &mask, const float maskThreshold, const cv::Size &imageShape, const cv::Size &imageOriginalShape);
-    std::vector<cv::Point> get_contour(const cv::Mat& mask, bool join);
+    std::vector<cv::Point> get_contour(const cv::Mat& mask, bool join=true);
 }
 
 class ONNXInf {
     public:
         explicit ONNXInf(std::nullptr_t){};
-        ONNXInf(const std::string &modelPath, const bool &isGPU, float confThreshold, float iouThreshold, float maskThreshold);
+        ONNXInf(const std::string &modelPath, const bool &isGPU, float confThreshold, float maskThreshold, float iouThreshold=0.1f);
         std::vector<Detection> predict(cv::Mat &image);
         int classNums = 80;
 
@@ -56,14 +55,10 @@ class ONNXInf {
 
 class OPENCVInf {
     public:
-        OPENCVInf( const std::string &onnxModelPath,  const cv::Size &modelInputShape = cv::Size(640, 640), const bool &runWithCuda = true, const float &accuThresh = 0.25, const float &maskThresh = 0.5, const int &segCh = 32, const cv::Size &segSize = cv::Size(160, 160));
-        std::vector<Detection> detect(cv::Mat& srcImg);
-        std::vector<Detection> segment(cv::Mat& srcImg);
-
+        OPENCVInf( const std::string &onnxModelPath, const bool &runWithCuda, const float &accuThresh, const float &maskThresh, const cv::Size &modelInputShape = cv::Size(640, 640));
+        std::vector<Detection> predict(cv::Mat& srcImg, bool only_bbox = false);
 
     private:
-        std::vector<Detection> run_detection(cv::Mat& srcImg);
-        void load_network();
         std::vector<Detection> decode_output(cv::Mat& output0, cv::Mat& output1);
         cv::Mat get_mask_rel(const cv::Mat& mask_info, const cv::Mat& mask_data, cv::Rect box);
         cv::Mat get_mask_abs(const cv::Mat& mask_info, const cv::Mat& mask_data, cv::Rect box);
