@@ -1,5 +1,6 @@
 #include <opencv2/opencv.hpp>
-#include "inference.hpp"
+#include <onnxruntime/onnxruntime_cxx_api.h>
+#include "inference.hpp" 
 #include "spdlog/spdlog.h"
 
 
@@ -8,7 +9,6 @@ int main(int argc, char *argv[]){
     float maskThreshold = 0.1f;
     bool isGPU = false;
 
-    // check if argument is "opencv" or "onnx"
     bool opencv = false;
     if (argc > 1){
         if (std::string(argv[1]) == "opencv"){
