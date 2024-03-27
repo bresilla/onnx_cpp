@@ -6,6 +6,16 @@
 },
 {
   "directory": "/doc/work/data/RIWO/onnx_cpp",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/inference.cpp.o", "src/inference.cpp"],
-  "file": "src/inference.cpp"
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/detections.cpp.o", "src/detections.cpp"],
+  "file": "src/detections.cpp"
+},
+{
+  "directory": "/doc/work/data/RIWO/onnx_cpp",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/onnxinf.cpp.o", "src/onnxinf.cpp"],
+  "file": "src/onnxinf.cpp"
+},
+{
+  "directory": "/doc/work/data/RIWO/onnx_cpp",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/opencvinf.cpp.o", "src/opencvinf.cpp"],
+  "file": "src/opencvinf.cpp"
 }]

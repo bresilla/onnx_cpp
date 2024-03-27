@@ -1,13 +1,16 @@
 #include <opencv2/opencv.hpp>
 #include <onnxruntime/onnxruntime_cxx_api.h>
-#include "inference.hpp" 
 #include "spdlog/spdlog.h"
+// #include "inference.hpp" 
+#include "detections.hpp"
+#include "onnxinf.hpp"
+#include "opencvinf.hpp"
 
 
 int main(int argc, char *argv[]){
     float confThreshold = 0.1f;
     float maskThreshold = 0.1f;
-    bool isGPU = false;
+    bool isGPU = true;
 
     bool opencv = false;
     if (argc > 1){
@@ -22,26 +25,38 @@ int main(int argc, char *argv[]){
     std::string imagePath = "/doc/work/data/RIWO/data/calyx/images/20210914_105512764176_rgb_trigger003_apple1.png";
     cv::Mat image = cv::imread(imagePath);
 
-
     std::vector<std::string> classNames = {"calyx"};
  
-    std::vector<Detection> result;
+    std::vector<Detection> results;
+    
     if (opencv){
         spdlog::info("Using OpenCV");
         OPENCVInf inf = OPENCVInf(modelPath, isGPU, confThreshold, maskThreshold);
-        result = inf.predict(image);
+        while (true) {
+            results = inf.predict(image);
+            for (auto &result : results){
+                spdlog::info("Detection: id: {}, accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);
+            }
+        }
+        
     } else {
         spdlog::info("Using ONNX");
         ONNXInf inf = ONNXInf(modelPath, isGPU, confThreshold, maskThreshold);
-        result = inf.predict(image);
+        while (true) {
+            results = inf.predict(image);
+            for (auto &result : results){
+                spdlog::info("Detection: id: {}, accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);
+            }
+        }
     }
+
 
     spdlog::info("Inference done");
 
-    utils::visualizeDetection(image, result, classNames);
+    // utils::visualizeDetection(image, results, classNames);
 
-    cv::imshow("Result", image);
-    cv::waitKey(0);
+    // cv::imshow("Result", image);
+    // cv::waitKey(0);
 
 
     return 0;
