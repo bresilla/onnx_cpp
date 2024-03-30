@@ -2,8 +2,8 @@
 #include <opencv2/opencv.hpp>
 #include <onnxruntime/onnxruntime_cxx_api.h>
 #include <utility>
-#include <spdlog/spdlog.h>
-#include "detections.hpp"
+// #include <spdlog/spdlog.h>
+#include "utils.hpp"
 
 
 class OPENCVInf {

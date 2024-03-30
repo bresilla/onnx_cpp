@@ -1,21 +1,26 @@
 [
 {
   "directory": "/doc/work/data/RIWO/onnx_cpp",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/main.cpp.o", "src/main.cpp"],
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-I/usr/local/cuda/include", "-DUSE_C10D_GLOO", "-DUSE_C10D_NCCL", "-DUSE_DISTRIBUTED", "-DUSE_RPC", "-DUSE_TENSORPIPE", "-I", "/pkg/xmake/.xmake/packages/s/spdlog/v1.13.0/cca5b628022e49229205fe5617e4245e/include", "-I", "/usr/local/include/opencv4", "-I", "/usr/local/include/torch/csrc/api/include", "-I", "/usr/local/cuda-12.1/include", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/main.cpp.o", "src/main.cpp"],
   "file": "src/main.cpp"
 },
 {
   "directory": "/doc/work/data/RIWO/onnx_cpp",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/detections.cpp.o", "src/detections.cpp"],
-  "file": "src/detections.cpp"
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-I/usr/local/cuda/include", "-DUSE_C10D_GLOO", "-DUSE_C10D_NCCL", "-DUSE_DISTRIBUTED", "-DUSE_RPC", "-DUSE_TENSORPIPE", "-I", "/pkg/xmake/.xmake/packages/s/spdlog/v1.13.0/cca5b628022e49229205fe5617e4245e/include", "-I", "/usr/local/include/opencv4", "-I", "/usr/local/include/torch/csrc/api/include", "-I", "/usr/local/cuda-12.1/include", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/utils.cpp.o", "src/utils.cpp"],
+  "file": "src/utils.cpp"
 },
 {
   "directory": "/doc/work/data/RIWO/onnx_cpp",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/onnxinf.cpp.o", "src/onnxinf.cpp"],
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-I/usr/local/cuda/include", "-DUSE_C10D_GLOO", "-DUSE_C10D_NCCL", "-DUSE_DISTRIBUTED", "-DUSE_RPC", "-DUSE_TENSORPIPE", "-I", "/pkg/xmake/.xmake/packages/s/spdlog/v1.13.0/cca5b628022e49229205fe5617e4245e/include", "-I", "/usr/local/include/opencv4", "-I", "/usr/local/include/torch/csrc/api/include", "-I", "/usr/local/cuda-12.1/include", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/onnxinf.cpp.o", "src/onnxinf.cpp"],
   "file": "src/onnxinf.cpp"
 },
 {
   "directory": "/doc/work/data/RIWO/onnx_cpp",
-  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-DSPDLOG_SHARED_LIB", "-DSPDLOG_COMPILED_LIB", "-DSPDLOG_FMT_EXTERNAL", "-I", "/usr/local/include/opencv4", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/opencvinf.cpp.o", "src/opencvinf.cpp"],
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-I/usr/local/cuda/include", "-DUSE_C10D_GLOO", "-DUSE_C10D_NCCL", "-DUSE_DISTRIBUTED", "-DUSE_RPC", "-DUSE_TENSORPIPE", "-I", "/pkg/xmake/.xmake/packages/s/spdlog/v1.13.0/cca5b628022e49229205fe5617e4245e/include", "-I", "/usr/local/include/opencv4", "-I", "/usr/local/include/torch/csrc/api/include", "-I", "/usr/local/cuda-12.1/include", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/opencvinf.cpp.o", "src/opencvinf.cpp"],
   "file": "src/opencvinf.cpp"
+},
+{
+  "directory": "/doc/work/data/RIWO/onnx_cpp",
+  "arguments": ["/usr/bin/gcc", "-c", "-m64", "-fvisibility=hidden", "-fvisibility-inlines-hidden", "-O3", "-std=c++17", "-Iinclude", "-I/usr/local/cuda/include", "-DUSE_C10D_GLOO", "-DUSE_C10D_NCCL", "-DUSE_DISTRIBUTED", "-DUSE_RPC", "-DUSE_TENSORPIPE", "-I", "/pkg/xmake/.xmake/packages/s/spdlog/v1.13.0/cca5b628022e49229205fe5617e4245e/include", "-I", "/usr/local/include/opencv4", "-I", "/usr/local/include/torch/csrc/api/include", "-I", "/usr/local/cuda-12.1/include", "-DNDEBUG", "-o", "build/.objs/detector/linux/x86_64/release/src/torchinf.cpp.o", "src/torchinf.cpp"],
+  "file": "src/torchinf.cpp"
 }]

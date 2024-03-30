@@ -89,6 +89,11 @@
         "queue": "cpp",
         "stack": "cpp",
         "__locale": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "*.inc": "cpp",
+        "csignal": "cpp",
+        "regex": "cpp",
+        "future": "cpp",
+        "valarray": "cpp"
     }
 }

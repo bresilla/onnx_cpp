@@ -1,6 +1,6 @@
 #pragma once
 #include <spdlog/spdlog.h>
-#include "detections.hpp"
+#include "utils.hpp"
 
 #include <cuda_runtime_api.h>
 #include <opencv2/opencv.hpp>
@@ -57,5 +57,5 @@ class TENSORinf {
         cudaStream_t stream = nullptr;
         void* buffs[5];
         int iH, iW, in_size, out_size1, out_size2, out_size3, out_size4;
-        Logger gLogger;
+        // ILogger gLogger;
 };

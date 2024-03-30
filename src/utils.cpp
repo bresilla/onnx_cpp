@@ -1,4 +1,4 @@
-#include "detections.hpp"
+#include "utils.hpp"
 
 
 namespace utils {
@@ -16,7 +16,7 @@ namespace utils {
             cv::rectangle(img, textBox, color, cv::FILLED);
             cv::putText(img, classString, cv::Point(left + 5, top - 10), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 2, 0);
             // if (detection[i].mask.size() == cv::Size(0, 0)){ continue; }
-            spdlog::info("Visualizing detection");
+            // spdlog::info("Visualizing detection");
             
             // if (detection[i].mask.rows && detection[i].mask.cols > 0){ mask.setTo(color, detection[i].mask); }
             cv::drawContours(img, std::vector<std::vector<cv::Point>>{detection[i].contour}, -1, color, 2);
