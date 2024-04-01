@@ -1,5 +1,4 @@
 #include "torchinf.hpp"
-#include <spdlog/spdlog.h>
 
 TORCHInf::TORCHInf(const std::string &modelPath, const bool &isGPU, float confThreshold, float maskThreshold, float iouThreshold) {
     if (isGPU && torch::cuda::is_available()){
@@ -50,7 +49,6 @@ std::vector<Detection> TORCHInf::predict(cv::Mat &image, bool only_bbox) {
             cv::Point class_id_point;
             double score;
             cv::minMaxLoc(classes_scores, nullptr, &score, nullptr, &class_id_point);
-            // spdlog::info("Score: {}", score);
             if (score > this->conf_threshold) {
                 class_ids.push_back(class_id_point.x);
                 confidences.push_back(score);
@@ -69,7 +67,6 @@ std::vector<Detection> TORCHInf::predict(cv::Mat &image, bool only_bbox) {
 
         Detection result;
         for (const int index : nms_indexes) {
-            // spdlog::info("Detection: {}", index);
             result.bbox = boxes[index];
             result.accu = confidences[index];
             result.id = class_ids[index];

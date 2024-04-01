@@ -1,9 +1,6 @@
 #pragma once
-
 #include <utility>
 #include <opencv2/opencv.hpp>
-// #include <spdlog/spdlog.h>
-
 
 struct Detection {
     int id{};

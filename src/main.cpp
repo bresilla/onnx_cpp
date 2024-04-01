@@ -2,7 +2,7 @@
 #include <onnxruntime/onnxruntime_cxx_api.h>
 #include "spdlog/spdlog.h"
 
-#include "utils.hpp"
+#include "detector.hpp"
 #include "onnxinf.hpp"
 #include "opencvinf.hpp"
 #include "torchinf.hpp"
@@ -33,45 +33,23 @@ int main(int argc, char *argv[]){
     spdlog::info("Start inference");    
 
     std::string modelPath = "/doc/work/data/RIWO/models/calix/best.onnx";
-    std::string imagePath = "/doc/work/data/RIWO/data/calyx/images/20210914_105512764176_rgb_trigger003_apple1.png";
-    cv::Mat image = cv::imread(imagePath);
+    cv::Mat image = cv::imread("/doc/work/data/RIWO/data/calyx/images/20210914_105512764176_rgb_trigger003_apple1.png");
 
-    std::vector<std::string> classNames = {"calyx"};
- 
-    std::vector<Detection> results;
     
+    Detector *detector;
     if (inftype == "opencv"){
-        spdlog::info("Using OpenCV");
-        OPENCVInf inf = OPENCVInf(modelPath, isGPU, confThreshold, maskThreshold);
-        // while (true) {
-            results = inf.predict(image);
-            for (auto &result : results){
-                spdlog::info("Detection: id: {}, accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);
-            }
-        // }
-        
+        detector = new OPENCVInf(modelPath, isGPU, confThreshold, maskThreshold);
     } else if (inftype == "onnx"){
-        spdlog::info("Using ONNX");
-        ONNXInf inf = ONNXInf(modelPath, isGPU, confThreshold, maskThreshold);
-        // while (true) {
-            results = inf.predict(image);
-            for (auto &result : results){
-                spdlog::info("Detection: id: {},  accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);
-            }
-        // }
+        detector = new ONNXInf(modelPath, isGPU, confThreshold, maskThreshold);
     } else if (inftype == "torch"){
-        spdlog::info("Using Torch");
-        std::string modelPath = "/doc/work/data/RIWO/models/calix/best.torchscript";
-        TORCHInf inf = TORCHInf(modelPath, isGPU, confThreshold, maskThreshold);
-        inf.predict(image);
-        for (auto &result : results){
-            spdlog::info("Detection: id: {},  accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);
-        }
+        modelPath = "/doc/work/data/RIWO/models/calix/best.torchscript";
+        detector = new TORCHInf(modelPath, isGPU, confThreshold, maskThreshold);
     }
 
-
+    std::vector<Detection> results = detector->predict(image);
     spdlog::info("Inference done");
 
+    std::vector<std::string> classNames = {"calyx"};
     utils::visualizeDetection(image, results, classNames);
 
     cv::imshow("Result", image);

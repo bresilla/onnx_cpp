@@ -1,9 +1,9 @@
 #pragma once
-#include "utils.hpp"
 #include <utility>
 #include <opencv2/opencv.hpp>
 #include <torch/torch.h>
 #include <torch/script.h>
+#include "detector.hpp"
 
 using torch::indexing::Slice;
 using torch::indexing::None;

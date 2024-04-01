@@ -94,6 +94,7 @@
         "csignal": "cpp",
         "regex": "cpp",
         "future": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "ios": "cpp"
     }
 }

@@ -1,8 +1,7 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <utility>
-// #include <spdlog/spdlog.h>
-#include "utils.hpp"
+#include "detector.hpp"
 
 
 class OPENCVInf : public Detector {
