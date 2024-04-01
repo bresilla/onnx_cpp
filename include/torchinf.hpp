@@ -19,13 +19,11 @@ class TORCHInf {
     private:
         torch::Device device = torch::Device(torch::kCPU);
         std::string model_path;
+        float conf_threshold;
+        float mask_threshold;
+        float nms_threshold;
 
         float generate_scale(cv::Mat& image, const std::vector<int>& target_size);
-        torch::Tensor xyxy2xywh(const torch::Tensor& x);
-        torch::Tensor xywh2xyxy(const torch::Tensor& x);
         float letterbox(cv::Mat &input_image, cv::Mat &output_image, const std::vector<int> &target_size);
-        torch::Tensor nms(const torch::Tensor& bboxes, const torch::Tensor& scores, float iou_threshold);
-        torch::Tensor non_max_suppression(torch::Tensor& prediction, float conf_thres = 0.25, float iou_thres = 0.45, int max_det = 300);
-        torch::Tensor clip_boxes(torch::Tensor& boxes, const std::vector<int>& shape);
-        torch::Tensor scale_boxes(const std::vector<int>& img1_shape, torch::Tensor& boxes, const std::vector<int>& img0_shape);
+        cv::Rect toBox(const cv::Mat& input, const cv::Rect& range);
 };

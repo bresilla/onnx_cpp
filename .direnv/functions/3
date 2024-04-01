@@ -1,0 +1,7 @@
+#!/bin/zsh
+3 () 
+{ 
+    echo "xmake run detector torch";
+    xmake run detector torch
+}
+3 $*

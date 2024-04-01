@@ -1,0 +1,7 @@
+#!/bin/zsh
+2 () 
+{ 
+    echo "xmake run detector onnx";
+    xmake run detector onnx
+}
+2 $*

@@ -1,0 +1,7 @@
+#!/bin/zsh
+1 () 
+{ 
+    echo "xmake run detector opencv";
+    xmake run detector opencv
+}
+1 $*

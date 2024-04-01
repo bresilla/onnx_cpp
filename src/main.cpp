@@ -9,8 +9,8 @@
 
 
 int main(int argc, char *argv[]){
-    float confThreshold = 0.1f;
-    float maskThreshold = 0.1f;
+    float confThreshold = 0.01f;
+    float maskThreshold = 0.01f;
     bool isGPU = true;
     std::string inftype = "onnx";
 
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
     } else if (inftype == "torch"){
         spdlog::info("Using Torch");
         std::string modelPath = "/doc/work/data/RIWO/models/calix/best.torchscript";
-        TORCHInf inf = TORCHInf(modelPath, false, confThreshold, maskThreshold);
+        TORCHInf inf = TORCHInf(modelPath, isGPU, confThreshold, maskThreshold);
         inf.predict(image);
         for (auto &result : results){
             spdlog::info("Detection: id: {},  accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);

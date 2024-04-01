@@ -1,0 +1,2 @@
+#!/usr/bin/sh
+xmake run detector opencv
