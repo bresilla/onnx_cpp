@@ -11,7 +11,7 @@ TORCHInf::TORCHInf(const std::string &modelPath, const bool &isGPU, float confTh
     this->nms_threshold = confThreshold;
 }
 
-std::vector<Detection> TORCHInf::predict(cv::Mat &image) {
+std::vector<Detection> TORCHInf::predict(cv::Mat &image, bool only_bbox) {
     std::vector<Detection> results;
     try {
         torch::jit::script::Module yolo_model;

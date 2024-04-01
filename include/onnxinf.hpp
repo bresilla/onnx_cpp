@@ -6,11 +6,11 @@
 #include "utils.hpp"
 
 
-class ONNXInf {
+class ONNXInf : public Detector{
     public:
         explicit ONNXInf(std::nullptr_t){};
         ONNXInf(const std::string &modelPath, const bool &isGPU, float confThreshold, float maskThreshold, float iouThreshold=0.1f);
-        std::vector<Detection> predict(cv::Mat &image);
+        std::vector<Detection> predict(cv::Mat &image, bool only_bbox = false);
         int classNums = 80;
 
     private:

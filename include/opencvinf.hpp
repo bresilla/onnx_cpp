@@ -5,7 +5,7 @@
 #include "utils.hpp"
 
 
-class OPENCVInf {
+class OPENCVInf : public Detector {
     public:
         OPENCVInf( const std::string &onnxModelPath, const bool &runWithCuda, const float &accuThresh, const float &maskThresh, const cv::Size &modelInputShape = cv::Size(640, 640));
         std::vector<Detection> predict(cv::Mat& srcImg, bool only_bbox = false);

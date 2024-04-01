@@ -13,6 +13,11 @@ struct Detection {
     std::vector<cv::Point> contour = {};
 };
 
+class Detector {
+    public:
+        virtual std::vector<Detection> predict(cv::Mat &image, bool only_boxes=false) = 0;
+};
+
 namespace utils{
     static std::vector<cv::Scalar> colors;
     void visualizeDetection(cv::Mat &image, std::vector<Detection> &results, const std::vector<std::string> &classNames);

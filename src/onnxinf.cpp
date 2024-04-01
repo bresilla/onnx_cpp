@@ -163,7 +163,7 @@ std::vector<Detection> ONNXInf::postprocessing(const cv::Size &resizedImageShape
     return results;
 }
 
-std::vector<Detection> ONNXInf::predict(cv::Mat &image) {
+std::vector<Detection> ONNXInf::predict(cv::Mat &image, bool only_bbox) {
     float *blob = nullptr;
     std::vector<int64_t> inputTensorShape{1, 3, -1, -1};
     this->preprocessing(image, blob, inputTensorShape);
