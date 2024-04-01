@@ -43,22 +43,22 @@ int main(int argc, char *argv[]){
     if (inftype == "opencv"){
         spdlog::info("Using OpenCV");
         OPENCVInf inf = OPENCVInf(modelPath, isGPU, confThreshold, maskThreshold);
-        while (true) {
+        // while (true) {
             results = inf.predict(image);
             for (auto &result : results){
                 spdlog::info("Detection: id: {}, accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);
             }
-        }
+        // }
         
     } else if (inftype == "onnx"){
         spdlog::info("Using ONNX");
         ONNXInf inf = ONNXInf(modelPath, isGPU, confThreshold, maskThreshold);
-        while (true) {
+        // while (true) {
             results = inf.predict(image);
             for (auto &result : results){
                 spdlog::info("Detection: id: {},  accu: {}, bbox: ({}, {}, {}, {})", result.id, result.accu, result.bbox.x, result.bbox.y, result.bbox.width, result.bbox.height);
             }
-        }
+        // }
     } else if (inftype == "torch"){
         spdlog::info("Using Torch");
         std::string modelPath = "/doc/work/data/RIWO/models/calix/best.torchscript";
@@ -72,10 +72,10 @@ int main(int argc, char *argv[]){
 
     spdlog::info("Inference done");
 
-    // utils::visualizeDetection(image, results, classNames);
+    utils::visualizeDetection(image, results, classNames);
 
-    // cv::imshow("Result", image);
-    // cv::waitKey(0);
+    cv::imshow("Result", image);
+    cv::waitKey(0);
 
 
     return 0;

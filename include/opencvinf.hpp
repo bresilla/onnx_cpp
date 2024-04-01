@@ -1,6 +1,5 @@
 #pragma once
 #include <opencv2/opencv.hpp>
-#include <onnxruntime/onnxruntime_cxx_api.h>
 #include <utility>
 // #include <spdlog/spdlog.h>
 #include "utils.hpp"
@@ -9,13 +8,12 @@
 class OPENCVInf {
     public:
         OPENCVInf( const std::string &onnxModelPath, const bool &runWithCuda, const float &accuThresh, const float &maskThresh, const cv::Size &modelInputShape = cv::Size(640, 640));
-        std::vector<Detection> predict(cv::Mat& srcImg, bool only_bbox = true);
+        std::vector<Detection> predict(cv::Mat& srcImg, bool only_bbox = false);
 
     private:
         std::vector<Detection> decode_output(cv::Mat& output0, cv::Mat& output1);
         cv::Mat get_mask_rel(const cv::Mat& mask_info, const cv::Mat& mask_data, cv::Rect box);
         cv::Mat get_mask_abs(const cv::Mat& mask_info, const cv::Mat& mask_data, cv::Rect box);
-        std::vector<cv::Point> get_contour(const cv::Mat& mask, bool join = true);
 
         std::string model_path;
         cv::Size model_shape;
